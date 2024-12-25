@@ -1,0 +1,8 @@
+./idea
+.idea
+*.coverage
+*.coverage.out
+./projects!/projects/
+./projects
+*.out
+/src/services/storage-microservice/projects/

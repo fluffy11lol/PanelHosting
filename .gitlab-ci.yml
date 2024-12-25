@@ -1,0 +1,53 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  COVERAGE_THRESHOLD: "30"
+
+
+build_all_services:
+  stage: build
+  image: docker:latest
+  before_script:
+    - docker info
+    - apk add --no-cache docker-compose
+  script:
+    - echo "🚀 Starting all services using docker-compose..."
+    - docker-compose up -d
+  only:
+    - main
+
+run_storage_service:
+  stage: build
+  image: golang:latest
+  script:
+    - echo "🚀 Starting storage-microservice manually..."
+    - cd src/services/storage-microservice
+    - go mod tidy
+    - go run ./cmd/main/main.go &
+  only:
+    - main
+
+test_all_services:
+  stage: test
+  image: golang:latest
+  script:
+    - echo "🔍 Running tests for all microservices..."
+    - |
+      for service in authentication-microservice billing-microservice project-microservice storage-microservice; do
+        echo "🧪 Testing $service..."
+        cd src/services/$service
+        go mod tidy
+        go test ./... -coverprofile=coverage.out
+        COVERAGE=$(go tool cover -func=coverage.out | grep 'total:' | awk '{print $3}' | sed 's/%//')
+        echo "📊 Coverage for $service: ${COVERAGE}%"
+        if [ $(echo "${COVERAGE} < ${COVERAGE_THRESHOLD}" | bc) -eq 1 ]; then
+          echo "❌ Coverage below threshold (${COVERAGE}% < ${COVERAGE_THRESHOLD}%) for $service!"
+          exit 1
+        fi
+        echo "✅ Coverage for $service passed!"
+        cd - > /dev/null
+      done
+    - echo "🎉 All microservices passed tests and coverage checks!"

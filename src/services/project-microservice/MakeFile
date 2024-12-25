@@ -1,0 +1,6 @@
+generate-proto:
+	protoc -I ./src/project-microservice/proto \
+        --go_out ./src/project-microservice/pkg/api/project --go_opt paths=source_relative \
+        --go-grpc_out ./src/project-microservice/pkg/api/project --go-grpc_opt paths=source_relative \
+        --grpc-gateway_out ./src/project-microservice/pkg/api/project --grpc-gateway_opt paths=source_relative \
+        ./src/project-microservice/proto/protobuf/project.proto

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option go_package = "pkg/api/billing";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+package api;
+
+service UserService {
+  rpc GetTariffs(google.protobuf.Empty) returns (GetTariffsResponse) {
+    option (google.api.http) = {
+      get: "/v1/billing/tariffs"
+    };
+  }
+}
+
+message Tariff {
+  string ID = 1;
+  string name = 2;
+  int64 SSD = 3;
+  int64 CPU = 4;
+  int64 RAM = 5;
+  int64 Price = 6;
+}
+
+message GetTariffsResponse {
+  repeated Tariff tariffs = 1;
+}

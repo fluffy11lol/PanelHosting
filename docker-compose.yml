@@ -1,0 +1,135 @@
+services:
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+# for local run use only commented volume
+      - ./nginx/:/etc/nginx/conf.d/
+# for gitlab ci
+#      - /builds/gospec/go3/panel_hosting/nginx:/etc/nginx
+
+
+
+  authentication-microservice:
+    build:
+      context: ./src
+      dockerfile: ./services/authentication-microservice/Dockerfile
+    env_file:
+      - ./src/services/authentication-microservice/configs/local.env
+    ports:
+      - "8081:8081"
+      - "9091:9091"
+    volumes:
+      - type: bind
+        source: ./src/services/authentication-microservice/static
+        target: /app/static
+    depends_on:
+      - auth_db
+
+  auth_db:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - ./src/services/authentication-microservice/configs/local.env
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
+
+  panel-microservice:
+    build:
+      context: ./src
+      dockerfile: ./services/control-panel-microservice/Dockerfile
+    env_file:
+      - ./src/services/control-panel-microservice/.env
+    ports:
+      - "8082:8081"
+      - "9092:9091"
+    volumes:
+      - type: bind
+        source: ./src/services/control-panel-microservice/ui/static
+        target: /app/static
+
+  billing-microservice:
+    build:
+      context: ./src
+      dockerfile: ./services/billing-microservice/Dockerfile
+    env_file:
+      - ./src/services/billing-microservice/configs/local.env
+    ports:
+      - "8083:8081"
+      - "9093:9091"
+    volumes:
+      - type: bind
+        source: ./src/services/billing-microservice/static
+        target: /app/static
+    depends_on:
+      - billing_db
+
+  billing_db:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - ./src/services/billing-microservice/configs/local.env
+    volumes:
+      - billing_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  project-microservice:
+    build:
+      context: ./src
+      dockerfile: ./services/project-microservice/Dockerfile
+    env_file:
+      - ./src/services/project-microservice/configs/local.env
+    ports:
+      - "8084:8081"
+      - "9094:9091"
+    depends_on:
+      - project_db
+
+  project_db:
+    image: postgres:latest
+    restart: always
+    env_file:
+      - ./src/services/project-microservice/configs/local.env
+    volumes:
+      - project_db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+
+  project_redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+
+#  storage-microservice:
+#    build:
+#      context: ./src
+#      dockerfile: ./services/storage-microservice/Dockerfile
+#    env_file:
+#      - ./src/services/storage-microservice/configs/local.env
+#    ports:
+#      - "8085:8081"
+#      - "9095:9091"
+#    depends_on:
+#      - storage_db
+#
+#  storage_db:
+#    image: postgres:latest
+#    restart: always
+#    env_file:
+#      - ./src/services/storage-microservice/configs/local.env
+#    volumes:
+#      - storage_db_data:/var/lib/postgresql/data
+#    ports:
+#      - "5435:5432"
+
+
+volumes:
+  auth_db_data:
+  billing_db_data:
+  project_db_data:

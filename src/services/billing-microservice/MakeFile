@@ -1,0 +1,6 @@
+generate-proto:
+	protoc -I ./src/billing-microservice/proto \
+        --go_out ./src/billing-microservice/pkg/api/billing --go_opt paths=source_relative \
+        --go-grpc_out ./src/billing-microservice/pkg/api/billing --go-grpc_opt paths=source_relative \
+        --grpc-gateway_out ./src/billing-microservice/pkg/api/billing --grpc-gateway_opt paths=source_relative \
+        ./src/billing-microservice/proto/protobuf/billing.proto

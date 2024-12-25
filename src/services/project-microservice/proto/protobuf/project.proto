@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+option go_package = "pkg/api/project";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+package api;
+
+message Server {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  Networking networking = 4;
+  int32 status = 5;
+  TariffInfo tariff_info = 6;
+  string created_at = 7;
+}
+
+message Networking {
+  string address = 1;
+  repeated int32 ports = 2; // нужен для определения к какому проекту порт принадлежит
+}
+
+message TariffInfo {
+  int32 tariff_id = 1;
+  int32 tariff_status = 2;
+  string expiration_time = 3;
+}
+
+service ProjectService {
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse) {
+    option (google.api.http) = {
+      post: "/v1/project/create"
+      body: "*"
+    };
+  }
+  rpc GetProject(google.protobuf.Empty) returns (GetProjectResponse) {
+    option (google.api.http) = {
+      get: "/v1/project/get"
+    };
+  }
+  rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse) {
+    option (google.api.http) = {
+      put: "/v1/project/update"
+      body: "*"
+    };
+  }
+  rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse) {
+    option (google.api.http) = {
+      delete: "/v1/project/delete"
+    };
+  }
+  rpc ListProjects(google.protobuf.Empty) returns (ListProjectsResponse) {
+    option (google.api.http) = {
+      get: "/v1/project/gets"
+    };
+  }
+}
+
+message CreateProjectRequest{
+  string name = 1;
+}
+message CreateProjectResponse{
+  bool Status = 1;
+}
+
+message GetProjectResponse{
+  Server server = 1;
+}
+
+message UpdateProjectRequest{
+  string ID = 1;
+  string name = 2;
+  Networking networking = 3;
+  int32 status = 4;
+  TariffInfo tariff_info = 5;
+}
+message UpdateProjectResponse{
+  Server server = 1;
+  bool   Status = 2;
+}
+
+message DeleteProjectRequest{
+  string ID = 1;
+}
+message DeleteProjectResponse{
+  bool Status = 1;
+}
+
+message ListProjectsResponse{
+  repeated Server server = 1;
+}

@@ -1,0 +1,6 @@
+generate-proto:
+	protoc -I ./src/authentication-microservice/proto \
+        --go_out ./src/authentication-microservice/pkg/api/authentication --go_opt paths=source_relative \
+        --go-grpc_out ./src/authentication-microservice/pkg/api/authentication --go-grpc_opt paths=source_relative \
+        --grpc-gateway_out ./src/authentication-microservice/pkg/api/authentication --grpc-gateway_opt paths=source_relative \
+        ./src/authentication-microservice/proto/protobuf/authentication.proto

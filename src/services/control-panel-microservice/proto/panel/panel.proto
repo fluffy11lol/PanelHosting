@@ -1,0 +1,268 @@
+syntax = "proto3";
+
+option go_package = "pkg/api/panel";
+
+
+package panel.v1;
+
+import "google/api/annotations.proto";
+
+
+message User {
+    string id = 1;
+    string username = 2;
+}
+
+message Resource {
+    string cpu = 1;
+    string memory = 2;
+    string storage_capacity = 3;
+    string max_dbs = 4;
+    string max_backups = 5;
+    string max_ports = 6;
+}
+
+message Server {
+    string name = 1;
+    string address = 2;
+    string port = 3;
+    string id = 4;
+    string status = 5;
+    string tariffstatus = 6;
+    Resource resources = 7;
+}
+
+message Port {
+    string number = 1;
+    string server_id = 2;
+}
+
+message Backup {
+   string id = 1;
+   string user_id = 2;
+   string server_id = 3;
+}
+
+message Database {
+   string id = 1;
+   string address = 2;
+   string db_name = 3;
+   string username = 4;
+   string password = 5;
+   string port = 6;
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string token = 1;
+}
+
+message ListServersRequest {
+    string user_id = 1;
+}
+  
+message ListServersResponse {
+    repeated Server servers = 1;
+}
+  
+message ServerDetailsRequest {
+    string id = 1;
+}
+  
+message ServerDetailsResponse {
+    Server server = 1;
+}
+
+message CreateServerRequest {
+    string name = 1;
+    string user_id = 2;
+    string user_billing_id = 3;
+    Resource resources = 4;
+}
+
+message CreateServerResponse {
+    Server server = 1;
+}
+
+message CreateDatabaseRequest {
+    string id = 1;
+    string user_id = 2;
+}
+
+message CreateDatabaseResponse {
+    string database_id = 1;
+}
+
+message DeleteDatabaseRequest {
+    string id = 1;
+    string user_id = 2;
+    string database_id = 3;
+}
+
+message DeleteDatabaseResponse {
+    string database_id = 1;
+}
+
+message GetDatabasesRequest {
+    string id = 1;
+    string user_id = 2;
+}
+
+message GetDatabasesResponse {
+    repeated Database databases = 1;
+}
+
+message ActionServerRequest {
+    string id = 1;
+    string action = 2;
+}
+
+message ActionServerResponse {
+    bool success = 1;          
+    string message = 2;
+}
+
+message UpdateServerRequest {
+    string id = 1;
+    string name = 2;
+}
+
+message UpdateServerResponse {
+    Server server = 1;
+}
+
+message DeleteServerRequest {
+    string id = 1;
+}
+
+message DeleteServerResponse {
+    string id = 1;
+}
+
+// Сообщение для передачи чанков архива
+message ArchiveChunk {
+  string id = 1;
+  string filename = 2; // Имя архива (отправляется только в начале)
+  bytes data = 3;      // Чанк данных архива
+}
+
+// Ответ сервера
+message UploadStatus {
+  string message = 1;  // Статус
+  bool success = 2;    // Флаг успеха
+}
+
+message ServerLogRequest {
+  string id = 1;      // ID сервера, для которого нужны логи
+  int32 limit = 2;           // Лимит строк логов (например, последние 100 строк)
+  string last_log_id = 3;    // ID последней строки (для продолжения чтения)
+}
+
+message ServerLogResponse {
+  repeated string logs = 1;  // Список строк логов
+  string last_log_id = 2;    // ID последней строки (для следующего запроса)
+}
+
+message ExecuteCommandRequest {
+  string id = 1;      // ID сервера
+  string command = 2;        // Команда, которую нужно выполнить
+}
+
+message ExecuteCommandResponse {
+  bool success = 1;          // Успешность выполнения команды
+  string output = 2;         // Результат выполнения команды (stdout/stderr)
+}
+
+service PanelService {
+    rpc Login(LoginRequest) returns (LoginResponse) {
+      option (google.api.http) = {
+        post: "/v1/login"
+        body: "*"
+      };
+    }
+  
+    rpc ListServers(ListServersRequest) returns (ListServersResponse) {
+      option (google.api.http) = {
+        get: "/v1/servers"
+      };
+    }
+
+    rpc CreateServer(CreateServerRequest) returns (CreateServerResponse) {
+      option (google.api.http) = {
+        post: "/v1/servers"
+        body: "*"
+      };
+    }
+
+    rpc GetServerDetails(ServerDetailsRequest) returns (ServerDetailsResponse) {
+      option (google.api.http) = {
+        get: "/v1/servers/{id}"
+      };
+    }
+
+    rpc ListDatabases(GetDatabasesRequest) returns (GetDatabasesResponse) {
+      option (google.api.http) = {
+        get: "/v1/servers/{id}/databases"
+      };
+    }
+
+    rpc ActionServer(ActionServerRequest) returns (ActionServerResponse) {
+      option (google.api.http) = {
+        post: "/v1/servers/{id}/actions"
+        body: "*"
+      };
+    }
+
+    rpc CreateDatabaseServer(CreateDatabaseRequest) returns (CreateDatabaseResponse) {
+      option (google.api.http) = {
+        post: "/v1/servers/{id}/databases"
+        body: "*"
+      };
+    }
+
+    rpc UpdateServer(UpdateServerRequest) returns (UpdateServerResponse) {
+      option (google.api.http) = {
+        put: "/v1/servers/{id}"
+        body: "*"
+      };
+    }
+
+    rpc DeleteServer(DeleteServerRequest) returns (DeleteServerResponse) {
+      option (google.api.http) = {
+        delete: "/v1/servers/{id}"
+      };
+    }
+
+    rpc DeleteDatabase(DeleteDatabaseRequest) returns (DeleteDatabaseResponse) {
+      option (google.api.http) = {
+        delete: "/v1/servers/{id}/databases"
+      };
+    }
+
+    // Получение логов сервера
+    rpc GetServerLogs(ServerLogRequest) returns (ServerLogResponse) {
+      option (google.api.http) = {
+        get: "/v1/servers/{id}/logs"
+      };
+    }
+  
+    // Выполнение команды на сервере
+    rpc ExecuteCommand(ExecuteCommandRequest) returns (ExecuteCommandResponse) {
+      option (google.api.http) = {
+        post: "/v1/servers/{id}/commands"
+        body: "*"
+      };
+    }
+
+    // Загрузка архива на сервер
+    rpc UploadArchive(stream ArchiveChunk) returns (UploadStatus) {
+      option (google.api.http) = {
+        post: "/v1/servers/upload"
+        body: "*"
+      };
+    }
+}

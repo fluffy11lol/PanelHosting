@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+option go_package="pkg/api/authentication";
+
+import "google/api/annotations.proto";
+package api;
+
+
+service UserService {
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse){
+    option (google.api.http) = {
+      post: "/v1/user/register"
+      body: "*"
+    };
+  }
+  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse){
+    option (google.api.http) = {
+      post: "/v1/user/login"
+      body: "*"
+    };
+  }
+  rpc LogoutUser(LogoutUserRequest) returns (LogoutUserResponse) {
+    option (google.api.http) = {
+      post: "/v1/user/logout"
+    };
+  }
+}
+message User{
+  string ID = 1;
+  string username = 2;
+  string email = 3;
+  string password = 4;
+  bool active = 5;
+}
+message RegisterUserRequest{
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+message RegisterUserResponse{
+  bool status = 1;
+}
+message LoginUserRequest{
+  string username = 1;
+  string password =2;
+}
+message LoginUserResponse{
+  string token = 1;
+}
+message LogoutUserRequest {}
+
+message LogoutUserResponse {
+  bool status = 1;
+}
